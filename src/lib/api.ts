@@ -2,7 +2,9 @@ import type {
 	Reservation,
 	DetailedReservation,
 	CreateReservationRequest,
-	ReservationFilter
+	ReservationFilter,
+	UserProfile,
+	ProfileListResponse
 } from './types';
 
 const API_BASE = '/api/proxy';
@@ -30,6 +32,15 @@ function buildUrl(path: string, params?: Record<string, string>): string {
 
 	return url.toString();
 }
+
+// Profile API functions
+export const profileApi = {
+	// List all profiles
+	async list(): Promise<UserProfile[]> {
+		const response = await fetch(`${API_BASE}/profiles`);
+		return handleResponse<ProfileListResponse>(response);
+	}
+};
 
 // Reservation API functions
 export const reservationApi = {
