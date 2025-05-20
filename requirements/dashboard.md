@@ -119,38 +119,6 @@ A form page for creating new reservations with the following features:
   - Back button to return to reservation list
   - Clear visual indication of current page
 
-### 4. Reservation Detail Page
-
-A detailed view for a single reservation with the following features:
-
-- **Reservation Information**
-
-  - All reservation details (ID, dates, room, guest information, etc.)
-  - Reservation status with option to update
-  - Payment information and status
-
-- **Guest Information**
-
-  - Guest details (name, contact information, etc.)
-  - Previous stay history (optional)
-
-- **Room Information**
-
-  - Room details (number, type, floor, etc.)
-  - Room status
-
-- **Edit Functionality**
-
-  - Form to edit reservation details
-  - Save and cancel buttons
-
-- **Delete Functionality**
-
-  - Option to delete the reservation with confirmation dialog
-
-- **Navigation**
-  - Back button to return to reservation list
-
 ## Technical Requirements
 
 ### API Integration
