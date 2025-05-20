@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A prototype for a hotel reservation administration dashboard built with SvelteKit. The prototype will focus on the frontend interface connecting to an existing API backend. It will handle basic reservation management with CRUD (Create, Read, Update, Delete) operations.
+A prototype for a hotel reservation administration dashboard. The prototype will focus on the frontend interface connecting to an existing API backend. It will handle basic reservation management with CRUD (Create, Read, Update, Delete) operations.
 
 ## Navigation and Layout
 
@@ -48,7 +48,7 @@ A dashboard view displaying all hotel reservations with the following features:
   - Configurable items per page
 
 - **Actions**
-  - "New Reservation" button to create a new reservation
+  - Link to "/reservations/new" for creating a new reservation
   - Quick action buttons for each reservation (view details, edit, delete)
 
 ### 2. Reservation Detail Page
@@ -83,12 +83,75 @@ A detailed view for a single reservation with the following features:
 - **Navigation**
   - Back button to return to reservation list
 
+### 3. New Reservation Page
+
+A form page for creating new reservations with the following features:
+
+- **Guest Selection**
+
+  - Search and select from existing guest profiles
+  - Option to create a new guest profile
+  - Display selected guest details
+
+- **Reservation Details Form**
+
+  - Room type selection
+  - Arrival and departure date selection
+  - Number of adults and children
+  - Rate amount input
+  - Booking channel selection
+  - Optional notes field
+
+- **Form Validation**
+
+  - Required field validation
+  - Date range validation
+  - Rate amount format validation
+  - Guest information validation
+
+- **Actions**
+
+  - Submit button to create reservation
+  - Cancel button to return to reservation list
+  - Clear form button
+
+- **Navigation**
+  - Back button to return to reservation list
+  - Clear visual indication of current page
+
+### 4. Reservation Detail Page
+
+A detailed view for a single reservation with the following features:
+
+- **Reservation Information**
+
+  - All reservation details (ID, dates, room, guest information, etc.)
+  - Reservation status with option to update
+  - Payment information and status
+
+- **Guest Information**
+
+  - Guest details (name, contact information, etc.)
+  - Previous stay history (optional)
+
+- **Room Information**
+
+  - Room details (number, type, floor, etc.)
+  - Room status
+
+- **Edit Functionality**
+
+  - Form to edit reservation details
+  - Save and cancel buttons
+
+- **Delete Functionality**
+
+  - Option to delete the reservation with confirmation dialog
+
+- **Navigation**
+  - Back button to return to reservation list
+
 ## Technical Requirements
-
-### Frontend Framework
-
-- SvelteKit for the frontend application
-- Responsive design for desktop and tablet use
 
 ### API Integration
 
@@ -103,25 +166,7 @@ A detailed view for a single reservation with the following features:
   - POST `/frontend_api/reservations/:id/check-out` - Check-out a guest
   - POST `/frontend_api/reservations/transform` - Transform reservation data
   - POST `/frontend_api/reservations/optimize` - Optimize reservation data
-
-### UI Components
-
-- Data tables with sorting and filtering
-- Forms with validation
-- Modal dialogs for confirmations
-- Toast notifications for action feedback
-- Date picker for reservation dates
-- Dropdown menus for status selection
-
-### State Management
-
-- Utilize SvelteKit stores for state management
-- Handle loading states and errors
-
-### Routing
-
-- Utilize SvelteKit routing
-- Dynamic routes for reservation details (/reservations/:id)
+  - GET `/frontend_api/profiles` - List user profiles
 
 ## Non-Functional Requirements
 

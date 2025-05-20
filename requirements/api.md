@@ -4,45 +4,139 @@
 
 List reservations with optional filters.
 
-### Query Parameters
-
-| Name                 | Type   | Description                                |
-| -------------------- | ------ | ------------------------------------------ |
-| `confirmationNumber` | string | Filter by confirmation number              |
-| `lastName`           | string | Filter by guest’s last name (primary only) |
-| `arrivalDate`        | string | Filter by arrival date (YYYY-MM-DD)        |
-| `status`             | string | Filter by reservation status               |
-
-### Response
-
 ```ts
 type ReservationResponse = Array<{
-  ReservationID: number;
-  ConfirmationNumber: string;
-  StatusCode: string;
-  BookingChannelCode: string;
-  PropertyID: number;
-  profile?: {
-    ProfileID: number;
-    EmailAddress?: string;
-    PhoneNumber?: string;
-    nameInfo?: {
-      FirstName: string;
-      LastName: string;
-      NamePrefix?: string;
-    };
-  };
-  reservationStay?: {
-    ArrivalDate: string;
-    DepartureDate?: string;
-    roomType?: {
-      RoomTypeCode: string;
-      Description: string;
-    };
-    room?: {
-      RoomNumber: string;
-    };
-  };
+	ReservationID: number;
+	ProfileID: number;
+	PropertyID: number;
+	ConfirmationNumber: string;
+	ReservationDate: string;
+	BookingChannelCode: string;
+	StatusCode: string;
+	CancellationDate: string | null;
+	CancellationReason: string | null;
+	Notes: string;
+	CreatedAt: string;
+	UpdatedAt: string;
+	CreatedBy: number;
+	profile: {
+		ProfileID: number;
+		ProfileTypeCode: string;
+		ProfileStatusCode: string;
+		VIPStatusCode: string;
+		IsAnIndividual: boolean;
+		EmailAddress: string;
+		PhoneNumber: string;
+		CountryOfResidence: string;
+		Nationality: string;
+		BirthDate: string;
+		GenderCode: string;
+		Notes: string;
+		CreatedAt: string;
+		UpdatedAt: string;
+		nameInfos: Array<{
+			NameInfoID: number;
+			ProfileID: number;
+			NamePrefix?: string;
+			FirstName: string;
+			MiddleName?: string;
+			LastName: string;
+			NameSuffix?: string;
+			IsPrimary: boolean;
+			CreatedAt: string;
+			UpdatedAt: string;
+		}>;
+		nameInfo: {
+			NameInfoID: number;
+			ProfileID: number;
+			NamePrefix?: string;
+			FirstName: string;
+			MiddleName?: string;
+			LastName: string;
+			NameSuffix?: string;
+			IsPrimary: boolean;
+			CreatedAt: string;
+			UpdatedAt: string;
+		};
+	};
+	property: {
+		PropertyID: number;
+		PropertyCode: string;
+		PropertyName: string;
+		Address?: string | null;
+		City: string;
+		State?: string | null;
+		Country: string;
+		PostalCode?: string | null;
+		Phone?: string | null;
+		Email?: string | null;
+		CheckInTime: string;
+		CheckOutTime: string;
+		CreatedAt: string;
+		UpdatedAt: string;
+	};
+	reservationStays: Array<{
+		ReservationStayID: number;
+		ReservationID: number;
+		RoomTypeID: number;
+		RoomID?: number | null;
+		ArrivalDate: string;
+		DepartureDate: string;
+		AdultCount: number;
+		ChildCount: number;
+		RateAmount: string;
+		StatusCode: string;
+		Notes?: string | null;
+		CreatedAt: string;
+		UpdatedAt: string;
+		CreatedBy: number;
+		roomType: {
+			RoomTypeID: number;
+			PropertyID: number;
+			RoomTypeCode: string;
+			Description: string;
+			MaxOccupancy: number;
+			BedType?: string | null;
+			StandardRate: string;
+			CreatedAt: string;
+			UpdatedAt: string;
+		};
+		room?: {
+			RoomID: number;
+			RoomNumber: string;
+		} | null;
+	}>;
+	reservationStay: {
+		ReservationStayID: number;
+		ReservationID: number;
+		RoomTypeID: number;
+		RoomID?: number | null;
+		ArrivalDate: string;
+		DepartureDate: string;
+		AdultCount: number;
+		ChildCount: number;
+		RateAmount: string;
+		StatusCode: string;
+		Notes?: string | null;
+		CreatedAt: string;
+		UpdatedAt: string;
+		CreatedBy: number;
+		roomType: {
+			RoomTypeID: number;
+			PropertyID: number;
+			RoomTypeCode: string;
+			Description: string;
+			MaxOccupancy: number;
+			BedType?: string | null;
+			StandardRate: string;
+			CreatedAt: string;
+			UpdatedAt: string;
+		};
+		room?: {
+			RoomID: number;
+			RoomNumber: string;
+		} | null;
+	};
 }>;
 ```
 
@@ -56,86 +150,221 @@ Get detailed reservation data.
 
 ```ts
 type DetailedReservationResponse = {
-  ReservationID: number;
-  ConfirmationNumber: string;
-  StatusCode: string;
-  CancellationReason?: string;
-  CancellationDate?: string;
-  property: {
-    PropertyName: string;
-  };
-  profile: {
-    ProfileID: number;
-    EmailAddress?: string;
-    PhoneNumber?: string;
-    nameInfos: Array<{
-      FirstName: string;
-      LastName: string;
-      NamePrefix?: string;
-    }>;
-  };
-  creator?: {
-    FirstName: string;
-    LastName: string;
-  };
-  reservationStays: Array<{
-    ArrivalDate: string;
-    DepartureDate: string;
-    roomType: {
-      RoomTypeCode: string;
-      Description: string;
-    };
-    room: {
-      RoomNumber: string;
-    };
-    guestNameInfos: Array<{
-      nameInfo: {
-        FirstName: string;
-        LastName: string;
-        NamePrefix?: string;
-      };
-    }>;
-  }>;
+	ReservationID: number;
+	ProfileID: number;
+	PropertyID: number;
+	ConfirmationNumber: string;
+	ReservationDate: string;
+	BookingChannelCode: string;
+	StatusCode: string;
+	CancellationDate: string | null;
+	CancellationReason: string | null;
+	Notes: string;
+	CreatedAt: string;
+	UpdatedAt: string;
+	CreatedBy: number;
+	property: {
+		PropertyName: string;
+	};
+	profile: {
+		ProfileID: number;
+		EmailAddress: string;
+		PhoneNumber: string;
+		nameInfos: Array<{
+			FirstName: string;
+			LastName: string;
+			NamePrefix?: string;
+		}>;
+	};
+	creator: {
+		FirstName: string;
+		LastName: string;
+	};
+	reservationStays: Array<{
+		ReservationStayID: number;
+		ReservationID: number;
+		RoomTypeID: number;
+		RoomID: number | null;
+		ArrivalDate: string;
+		DepartureDate: string;
+		AdultCount: number;
+		ChildCount: number;
+		RateAmount: string;
+		StatusCode: string;
+		Notes: string | null;
+		CreatedAt: string;
+		UpdatedAt: string;
+		CreatedBy: number;
+		roomType: {
+			RoomTypeCode: string;
+			Description: string;
+		};
+		room: null | {
+			RoomNumber?: string;
+		};
+		guestNameInfos: Array<any>;
+	}>;
+	PropertyName: string;
+	CreatedByFirstName: string;
+	CreatedByLastName: string;
+	ProfileFirstName: string;
+	ProfileLastName: string;
+	ProfileNamePrefix: string;
+	stays: Array<{
+		ReservationStayID: number;
+		ReservationID: number;
+		RoomTypeID: number;
+		RoomID: number | null;
+		ArrivalDate: string;
+		DepartureDate: string;
+		AdultCount: number;
+		ChildCount: number;
+		RateAmount: string;
+		StatusCode: string;
+		Notes: string | null;
+		CreatedAt: string;
+		UpdatedAt: string;
+		CreatedBy: number;
+		roomType: {
+			RoomTypeCode: string;
+			Description: string;
+		};
+		room: null | {
+			RoomNumber?: string;
+		};
+		guestNameInfos: Array<any>;
+		RoomTypeCode: string;
+		RoomTypeDescription: string;
+		guests: Array<any>;
+	}>;
+	folios: Array<{
+		FolioStayID: number;
+		ReservationStayID: number;
+		Status: string;
+		Amount: string;
+		Source: string;
+		FolioType: string;
+		CreatedAt: string;
+		UpdatedAt: string;
+		UpdatedBy: number | null;
+	}>;
 };
 ```
 
 ---
 
-## POST `/frontend_api/reservations`
+## POST /frontend_api/reservations
 
-Create a new reservation.
+## Creates a new reservation for a guest. This endpoint supports both assigning an existing profile or creating a new guest profile along with reservation and stay information.
 
-### Request
-
-```ts
-type CreateReservationRequest = {
-  ConfirmationNumber: string;
-  profile: {
-    FirstName: string;
-    LastName: string;
-    EmailAddress?: string;
-    PhoneNumber?: string;
-  };
-  reservationStays: Array<{
-    ArrivalDate: string;
-    DepartureDate: string;
-    RoomTypeID: number;
-    RoomID?: number;
-  }>;
-  BookingChannelCode: string;
-  PropertyID: number;
-};
-```
-
-### Response
+## Request Body
 
 ```ts
-type CreateReservationResponse = {
-  ReservationID: number;
-  confirmationNumber: string;
-  guestName: string;
-};
+interface CreateReservationRequest {
+	profileId?: number; // Optional: Use if guest profile already exists
+	ProfileID?: number; // Alias for profileId
+	propertyId?: number; // Optional, defaults to 1
+	bookingChannel?: string; // Optional, defaults to "DIRECT"
+	notes?: string;
+	stays: StayInput[];
+	guestInfo?: GuestInfoInput;
+}
+
+interface StayInput {
+	roomTypeId: number;
+	arrivalDate: string; // ISO date
+	departureDate: string; // ISO date
+	adultCount?: number; // default: 1
+	childCount?: number; // default: 0
+	rateAmount: number | string;
+	guestNames?: {
+		nameInfoId: number;
+		isPrimaryGuest?: boolean;
+	}[];
+}
+
+interface GuestInfoInput {
+	firstName: string;
+	lastName: string;
+	email?: string;
+	phoneNumber?: string;
+	address?: {
+		addressLine1?: string;
+		addressLine2?: string;
+		city?: string;
+		stateProvince?: string;
+		postalCode?: string;
+		country?: string;
+	};
+	namePrefix?: string;
+	nameSuffix?: string;
+	middleName?: string;
+	ProfileTypeCode?: string; // default: "GUEST"
+	ProfileStatusCode?: string; // default: "Active"
+}
 ```
+
+---
+
+## Response
+
+```ts
+interface ReservationResponse {
+	ReservationID: number;
+	ProfileID: number;
+	PropertyID: number;
+	ConfirmationNumber: string;
+	BookingChannelCode: string;
+	StatusCode: string;
+	Notes?: string;
+	CreatedBy: number;
+	profile: {
+		ProfileID: number;
+		EmailAddress: string;
+		PhoneNumber: string;
+		ProfileTypeCode: string;
+		ProfileStatusCode: string;
+		nameInfo: {
+			FirstName: string;
+			LastName: string;
+		} | null;
+	};
+	reservationStays: {
+		ReservationStayID: number;
+		RoomTypeID: number;
+		ArrivalDate: string;
+		DepartureDate: string;
+		AdultCount: number;
+		ChildCount: number;
+		RateAmount: number;
+		roomType?: any;
+		room?: any;
+		guestNameInfos: {
+			nameInfo: {
+				FirstName: string;
+				LastName: string;
+			};
+		}[];
+	}[];
+}
+```
+
+---
+
+## Error Responses
+
+- `400 Bad Request` – if profile ID is missing and `guestInfo` is not provided.
+- `500 Internal Server Error` – for general server errors during profile or reservation creation.
+
+---
+
+## Notes
+
+- Automatically generates confirmation number.
+- Profile is created on the fly if not provided, along with name and contact info.
+- Stay dates are auto-generated between arrival and departure.
+- Supports multiple stays and guest names per reservation.
+- RateAmount string values will be parsed into float.
 
 ---
 
@@ -147,16 +376,16 @@ Update reservation notes or stay details.
 
 ```ts
 type PatchReservationRequest = {
-  notes?: string;
-  stays?: Array<{
-    stayId: number;
-    arrivalDate?: string;
-    departureDate?: string;
-    adultCount?: number;
-    childCount?: number;
-    roomTypeId?: number;
-    rateAmount?: number;
-  }>;
+	notes?: string;
+	stays?: Array<{
+		stayId: number;
+		arrivalDate?: string;
+		departureDate?: string;
+		adultCount?: number;
+		childCount?: number;
+		roomTypeId?: number;
+		rateAmount?: number;
+	}>;
 };
 ```
 
@@ -176,7 +405,7 @@ Cancel a reservation.
 
 ```ts
 type CancelReservationRequest = {
-  reason: string;
+	reason: string;
 };
 ```
 
@@ -184,7 +413,7 @@ type CancelReservationRequest = {
 
 ```ts
 type CancelReservationResponse = {
-  message: string;
+	message: string;
 };
 ```
 
@@ -198,19 +427,19 @@ Check-in a guest.
 
 ```ts
 type CheckInRequest = {
-  roomId: number;
-  guestDetails: {
-    useReservedGuest: boolean;
-    guests: Array<{
-      firstName: string;
-      lastName: string;
-      idType?: string;
-      idNumber?: string;
-      isPrimary: boolean;
-    }>;
-  };
-  paymentMethod: string;
-  specialRequests?: string;
+	roomId: number;
+	guestDetails: {
+		useReservedGuest: boolean;
+		guests: Array<{
+			firstName: string;
+			lastName: string;
+			idType?: string;
+			idNumber?: string;
+			isPrimary: boolean;
+		}>;
+	};
+	paymentMethod: string;
+	specialRequests?: string;
 };
 ```
 
@@ -218,8 +447,8 @@ type CheckInRequest = {
 
 ```ts
 type CheckInResponse = {
-  message: string;
-  reservation: DetailedReservationResponse;
+	message: string;
+	reservation: DetailedReservationResponse;
 };
 ```
 
@@ -233,8 +462,8 @@ Check-out a guest.
 
 ```ts
 type CheckOutResponse = {
-  message: string;
-  reservation: DetailedReservationResponse;
+	message: string;
+	reservation: DetailedReservationResponse;
 };
 ```
 
@@ -259,3 +488,30 @@ Transformed version of reservations.
 ## POST `/frontend_api/reservations/optimize`
 
 Same as `/transform`, optimized for storage/transmission.
+
+---
+
+## GET `/frontend_api/profiles`
+
+List user profiles.
+
+### Query Parameters
+
+_None._
+
+### Response
+
+```ts
+type UserProfile = {
+	ProfileID: number;
+	EmailAddress: string;
+	PhoneNumber: string;
+	CreatedAt: string; // Alternatively, you can use Date if you want to handle it as a Date object
+	VIPStatusCode: string;
+	FirstName: string;
+	LastName: string;
+	NameInfoID: number;
+};
+
+type UserProfileListResponse = Array<UserProfile>;
+```
