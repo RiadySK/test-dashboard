@@ -2,41 +2,37 @@
   import { onMount } from 'svelte';
   import { 
     fetchReservations, 
-    paginatedReservations, 
     isLoading, 
     error, 
     currentPage, 
     itemsPerPage, 
     totalItems,
-    currentFilter
+    reservations
   } from '$lib/stores/reservationStore';
-  import type { ReservationFilter } from '$lib/types';
   import { getStatusColor } from '$lib/utils/statusColors';
 
   // Pagination
   $: totalPages = Math.ceil($totalItems / $itemsPerPage);
   
-  // Filters
-  let filters: ReservationFilter = {
-    confirmationNumber: '',
-    lastName: '',
-    arrivalDate: '',
-    status: ''
-  };
+  // Search
+  let searchQuery = '';
+  
+  $: filteredReservations = $reservations.filter(reservation => {
+    if (!searchQuery) return true;
+    
+    const searchLower = searchQuery.toLowerCase();
+    const confirmationNumber = reservation.ConfirmationNumber?.toLowerCase() || '';
+    const guestName = `${reservation.profile?.nameInfo?.FirstName || ''} ${reservation.profile?.nameInfo?.LastName || ''}`.toLowerCase();
+    
+    return confirmationNumber.includes(searchLower) || guestName.includes(searchLower);
+  });
 
-  function handleFilter() {
-    fetchReservations(filters);
-  }
-
-  function clearFilters() {
-    filters = {
-      confirmationNumber: '',
-      lastName: '',
-      arrivalDate: '',
-      status: ''
-    };
-    fetchReservations({});
-  }
+  $: totalItems.set(filteredReservations.length);
+  
+  $: paginatedResults = filteredReservations.slice(
+    ($currentPage - 1) * $itemsPerPage,
+    $currentPage * $itemsPerPage
+  );
 
   function goToPage(page: number) {
     if (page >= 1 && page <= totalPages) {
@@ -61,61 +57,16 @@
     </a>
   </div>
 
-  <!-- Filters -->
+  <!-- Search -->
   <div class="bg-card rounded-lg shadow p-6 mb-6">
-    <h2 class="text-lg font-medium mb-4 text-card-foreground">Filters</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-foreground mb-1">Confirmation Number</label>
-        <input 
-          type="text" 
-          bind:value={filters.confirmationNumber} 
-          class="w-full border-border rounded-md shadow-sm focus:border-ring focus:ring-ring"
-        />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-foreground mb-1">Guest Last Name</label>
-        <input 
-          type="text" 
-          bind:value={filters.lastName} 
-          class="w-full border-border rounded-md shadow-sm focus:border-ring focus:ring-ring"
-        />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-foreground mb-1">Arrival Date</label>
-        <input 
-          type="date" 
-          bind:value={filters.arrivalDate} 
-          class="w-full border-border rounded-md shadow-sm focus:border-ring focus:ring-ring"
-        />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-foreground mb-1">Status</label>
-        <select 
-          bind:value={filters.status} 
-          class="w-full border-border rounded-md shadow-sm focus:border-ring focus:ring-ring"
-        >
-          <option value="">All</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="checked-in">Checked In</option>
-          <option value="checked-out">Checked Out</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-      </div>
-    </div>
-    <div class="flex justify-end mt-4 space-x-2">
-      <button 
-        on:click={clearFilters}
-        class="px-4 py-2 border border-border rounded-md shadow-sm text-sm font-medium text-foreground bg-card hover:bg-accent"
-      >
-        Clear
-      </button>
-      <button 
-        on:click={handleFilter}
-        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90"
-      >
-        Apply Filters
-      </button>
+    <div class="max-w-md">
+      <label class="block text-sm font-medium text-foreground mb-1">Search Reservations</label>
+      <input 
+        type="text" 
+        bind:value={searchQuery}
+        placeholder="Search by confirmation number or guest name..."
+        class="w-full border-border rounded-md shadow-sm focus:border-ring focus:ring-ring"
+      />
     </div>
   </div>
 
@@ -159,14 +110,14 @@
             </tr>
           </thead>
           <tbody class="bg-card divide-y divide-border">
-            {#if $paginatedReservations.length === 0}
+            {#if paginatedResults.length === 0}
               <tr>
                 <td colspan="7" class="px-6 py-4 text-center text-muted-foreground">
                   No reservations found
                 </td>
               </tr>
             {:else}
-              {#each $paginatedReservations as reservation}
+              {#each paginatedResults as reservation}
                 <tr>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                     {reservation.ConfirmationNumber}
