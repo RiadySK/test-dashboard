@@ -2,27 +2,34 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { createReservation, isLoading, error } from '$lib/stores/reservationStore';
-  import type { CreateReservationRequest } from '$lib/types';
+  import { profiles, loadProfiles } from '$lib/stores/profileStore';
+  import type { CreateReservationRequest, UserProfile } from '$lib/types';
   
-  let formData: CreateReservationRequest = {
-    ConfirmationNumber: '',
-    profile: {
-      FirstName: '',
-      LastName: '',
-      EmailAddress: '',
-      PhoneNumber: ''
-    },
-    reservationStays: [{
-      ArrivalDate: '',
-      DepartureDate: '',
-      RoomTypeID: 0,
-      RoomID: undefined
-    }],
-    BookingChannelCode: 'DIRECT',
-    PropertyID: 1 // Default property ID
+  const initialGuestInfo = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: ''
   };
   
+  let formData = {
+    profileId: undefined as number | undefined,
+    PropertyID: 1, // Default property ID
+    bookingChannel: 'DIRECT' as const,
+    stays: [{
+      roomTypeId: 0,
+      arrivalDate: '',
+      departureDate: '',
+      adultCount: 1,
+      childCount: 0,
+      rateAmount: '0'
+    }],
+    guestInfo: initialGuestInfo
+  } satisfies CreateReservationRequest;
+  
   let successMessage = '';
+  let selectedProfile: UserProfile | null = null;
+  let showNewGuestForm = false;
   
   // For display purposes, we'll have a list of room types
   let roomTypes = [
@@ -49,31 +56,40 @@
   }
   
   function addStay() {
-    formData.reservationStays = [
-      ...formData.reservationStays,
+    formData.stays = [
+      ...formData.stays,
       {
-        ArrivalDate: '',
-        DepartureDate: '',
-        RoomTypeID: 0,
-        RoomID: undefined
+        roomTypeId: 0,
+        arrivalDate: '',
+        departureDate: '',
+        adultCount: 1,
+        childCount: 0,
+        rateAmount: '0'
       }
     ];
   }
   
   function removeStay(index: number) {
-    if (formData.reservationStays.length > 1) {
-      formData.reservationStays = formData.reservationStays.filter((_, i) => i !== index);
+    if (formData.stays.length > 1) {
+      formData.stays = formData.stays.filter((_, i) => i !== index);
     }
   }
   
-  function generateConfirmationNumber() {
-    const prefix = 'RES';
-    const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-    formData.ConfirmationNumber = `${prefix}${randomNum}`;
+  function selectProfile(profile: UserProfile) {
+    selectedProfile = profile;
+    formData.profileId = profile.ProfileID;
+    showNewGuestForm = false;
   }
   
-  onMount(() => {
-    generateConfirmationNumber();
+  function showNewGuest() {
+    selectedProfile = null;
+    formData.profileId = undefined;
+    formData.guestInfo = { ...initialGuestInfo };
+    showNewGuestForm = true;
+  }
+  
+  onMount(async () => {
+    await loadProfiles();
   });
 </script>
 
@@ -101,49 +117,112 @@
   </div>
   
   <form on:submit|preventDefault={handleSubmit} class="bg-white rounded-lg shadow p-6">
-    <!-- Guest Information Section -->
+    <!-- Guest Selection Section -->
     <div class="mb-6">
       <h2 class="text-lg font-medium mb-4">Guest Information</h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-          <input 
-            type="text" 
-            bind:value={formData.profile.FirstName} 
-            required
-            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+      {#if !selectedProfile && !showNewGuestForm}
+        <div class="mb-4">
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Select Existing Guest</h3>
+          <select
+            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 mb-2"
+            on:change={(e) => {
+              const target = e.target as HTMLSelectElement;
+              const profileId = Number(target.value);
+              const profile = $profiles.find(p => p.ProfileID === profileId);
+              if (profile) selectProfile(profile);
+            }}
+          >
+            <option value="">-- Select a guest --</option>
+            {#each $profiles as profile}
+              <option value={profile.ProfileID}>
+                {profile.FirstName} {profile.LastName} ({profile.EmailAddress}) [{profile.VIPStatusCode}]
+              </option>
+            {/each}
+          </select>
         </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-          <input 
-            type="text" 
-            bind:value={formData.profile.LastName} 
-            required
-            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+        <div class="text-center">
+          <button
+            type="button"
+            on:click={showNewGuest}
+            class="text-blue-600 hover:text-blue-800"
+          >
+            + Add New Guest
+          </button>
         </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-          <input 
-            type="email" 
-            bind:value={formData.profile.EmailAddress} 
-            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+      {:else if showNewGuestForm}
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-medium text-gray-700">New Guest Information</h3>
+            <button
+              type="button"
+              on:click={() => showNewGuestForm = false}
+              class="text-gray-500 hover:text-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <input 
+                type="text" 
+                bind:value={formData.guestInfo.firstName} 
+                required
+                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <input 
+                type="text" 
+                bind:value={formData.guestInfo.lastName} 
+                required
+                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <input 
+                type="email" 
+                bind:value={formData.guestInfo.email} 
+                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+              <input 
+                type="tel" 
+                bind:value={formData.guestInfo.phoneNumber} 
+                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </div>
         </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-          <input 
-            type="tel" 
-            bind:value={formData.profile.PhoneNumber} 
-            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+      {:else if selectedProfile}
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-medium text-gray-700">Selected Guest</h3>
+            <button
+              type="button"
+              on:click={() => selectedProfile = null}
+              class="text-gray-500 hover:text-gray-700"
+            >
+              Change Guest
+            </button>
+          </div>
+          
+          <div class="p-4 bg-gray-50 rounded-md">
+            <div class="font-medium">{selectedProfile.FirstName} {selectedProfile.LastName}</div>
+            <div class="text-sm text-gray-500">{selectedProfile.EmailAddress}</div>
+            <div class="text-sm text-gray-500">{selectedProfile.PhoneNumber}</div>
+          </div>
         </div>
-      </div>
+      {/if}
     </div>
     
     <!-- Reservation Details Section -->
@@ -152,28 +231,9 @@
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Confirmation Number</label>
-          <div class="flex">
-            <input 
-              type="text" 
-              bind:value={formData.ConfirmationNumber} 
-              required
-              class="w-full border-gray-300 rounded-l-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-            <button 
-              type="button" 
-              on:click={generateConfirmationNumber}
-              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-r-md hover:bg-gray-300"
-            >
-              Generate
-            </button>
-          </div>
-        </div>
-        
-        <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Booking Channel</label>
           <select 
-            bind:value={formData.BookingChannelCode} 
+            bind:value={formData.bookingChannel} 
             required
             class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
@@ -199,12 +259,12 @@
         </button>
       </div>
       
-      {#each formData.reservationStays as stay, index}
+      {#each formData.stays as stay, index}
         <div class="bg-gray-50 p-4 rounded-md mb-4">
           <div class="flex justify-between items-center mb-3">
             <h4 class="text-sm font-medium">Stay {index + 1}</h4>
             
-            {#if formData.reservationStays.length > 1}
+            {#if formData.stays.length > 1}
               <button 
                 type="button" 
                 on:click={() => removeStay(index)}
@@ -220,7 +280,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
               <input 
                 type="date" 
-                bind:value={stay.ArrivalDate} 
+                bind:value={stay.arrivalDate} 
                 required
                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
@@ -230,7 +290,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
               <input 
                 type="date" 
-                bind:value={stay.DepartureDate} 
+                bind:value={stay.departureDate} 
                 required
                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
@@ -239,7 +299,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
               <select 
-                bind:value={stay.RoomTypeID} 
+                bind:value={stay.roomTypeId} 
                 required
                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
@@ -251,10 +311,33 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Room ID (Optional)</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Rate Amount</label>
               <input 
                 type="number" 
-                bind:value={stay.RoomID} 
+                bind:value={stay.rateAmount} 
+                required
+                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Adults</label>
+              <input 
+                type="number" 
+                bind:value={stay.adultCount} 
+                min="1"
+                required
+                class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Children</label>
+              <input 
+                type="number" 
+                bind:value={stay.childCount} 
+                min="0"
+                required
                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
