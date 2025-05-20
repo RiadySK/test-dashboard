@@ -10,6 +10,7 @@
     checkInGuest,
     checkOutGuest
   } from '$lib/stores/reservationStore';
+  import { getStatusColor } from '$lib/utils/statusColors';
   
   let confirmCancel = false;
   let cancelReason = '';
@@ -18,7 +19,7 @@
     roomId: 0,
     guestDetails: {
       useReservedGuest: true,
-      guests: []
+      guests: [] as Array<{ firstName: string; lastName: string; isPrimary: boolean }>
     },
     paymentMethod: 'card',
     specialRequests: ''
@@ -71,7 +72,7 @@
     }
   }
   
-  function formatDate(dateString) {
+  function formatDate(dateString: string | undefined): string {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -107,11 +108,7 @@
       <div>
         <h1 class="text-2xl font-bold">Reservation #{$currentReservation.ConfirmationNumber}</h1>
         <p class="text-gray-600 mt-1">
-          <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-            {$currentReservation.StatusCode === 'confirmed' ? 'bg-green-100 text-green-800' : 
-            $currentReservation.StatusCode === 'checked-in' ? 'bg-blue-100 text-blue-800' : 
-            $currentReservation.StatusCode === 'checked-out' ? 'bg-gray-100 text-gray-800' : 
-            'bg-red-100 text-red-800'}">
+          <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {getStatusColor($currentReservation.StatusCode)}">
             {$currentReservation.StatusCode}
           </span>
         </p>
@@ -242,7 +239,7 @@
             </div>
             <div class="grid grid-cols-2">
               <div class="text-gray-600">Room Number:</div>
-              <div>{stay.room.RoomNumber}</div>
+              <div>{stay.room ? stay.room.RoomNumber : 'Not Assigned'}</div>
             </div>
             {#if stay.guestNameInfos && stay.guestNameInfos.length > 0}
               <div class="mt-4">
