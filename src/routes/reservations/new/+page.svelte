@@ -4,6 +4,8 @@
   import { createReservation, isLoading, error } from '$lib/stores/reservationStore';
   import { profiles, loadProfiles } from '$lib/stores/profileStore';
   import type { CreateReservationRequest, UserProfile } from '$lib/types';
+  import CustomDropdown from '$lib/components/CustomDropdown.svelte';
+  import { getVIPStatusColor } from '$lib/utils/vipStatusColors';
   
   const initialGuestInfo = {
     firstName: '',
@@ -124,22 +126,33 @@
       {#if !selectedProfile && !showNewGuestForm}
         <div class="mb-4">
           <h3 class="text-sm font-medium text-gray-700 mb-2">Select Existing Guest</h3>
-          <select
-            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 mb-2"
-            on:change={(e) => {
-              const target = e.target as HTMLSelectElement;
-              const profileId = Number(target.value);
-              const profile = $profiles.find(p => p.ProfileID === profileId);
-              if (profile) selectProfile(profile);
+          <CustomDropdown
+            options={$profiles.map(profile => ({
+              value: profile.ProfileID,
+              label: `${profile.FirstName} ${profile.LastName}`,
+              profile
+            }))}
+            selectedValue={formData.profileId}
+            placeholder="-- Select a guest --"
+            optionLabel="label"
+            optionValue="value"
+            showHeader={true}
+            on:select={({ detail }) => {
+              if (detail.option.profile) selectProfile(detail.option.profile);
             }}
           >
-            <option value="">-- Select a guest --</option>
-            {#each $profiles as profile}
-              <option value={profile.ProfileID}>
-                {profile.FirstName} {profile.LastName} ({profile.EmailAddress}) [{profile.VIPStatusCode}]
-              </option>
-            {/each}
-          </select>
+            <div slot="option" let:option>
+              <div class="grid grid-cols-12 gap-2 items-center">
+                <div class="col-span-4 font-medium">{option.profile.FirstName} {option.profile.LastName}</div>
+                <div class="col-span-5 text-gray-600">{option.profile.EmailAddress}</div>
+                <div class="col-span-3 text-right">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getVIPStatusColor(option.profile.VIPStatusCode)}">
+                    {option.profile.VIPStatusCode}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </CustomDropdown>
         </div>
         <div class="text-center">
           <button
