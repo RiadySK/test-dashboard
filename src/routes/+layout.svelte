@@ -5,7 +5,7 @@
 	let { children } = $props();
 </script>
 
-<div class="min-h-screen bg-gray-50">
+<div class="layout">
 	<Header />
 	<main>
 		{@render children()}
@@ -13,10 +13,10 @@
 </div>
 
 <style>
-	.app {
+	.layout {
 		display: flex;
-		flex-direction: column;
 		min-height: 100vh;
+		background-color: rgb(249 250 251);
 	}
 
 	main {

@@ -5,16 +5,13 @@
 </script>
 
 <header>
-	<div class="corner">
+	<div class="logo">
 		<a href="https://svelte.dev/docs/kit">
 			<img src={logo} alt="SvelteKit" />
 		</a>
 	</div>
 
 	<nav>
-		<svg viewBox="0 0 2 3" aria-hidden="true">
-			<path d="M0,0 L1,2 C1.5,3 1.5,3 2,3 L2,0 Z" />
-		</svg>
 		<ul>
 			<li aria-current={page.url.pathname === '/' ? 'page' : undefined}>
 				<a href="/">Home</a>
@@ -26,12 +23,9 @@
 				<a href="/sverdle">Sverdle</a>
 			</li>
 		</ul>
-		<svg viewBox="0 0 2 3" aria-hidden="true">
-			<path d="M0,0 L0,3 C0.5,3 0.5,3 1,2 L2,0 Z" />
-		</svg>
 	</nav>
 
-	<div class="corner">
+	<div class="github">
 		<a href="https://github.com/sveltejs/kit">
 			<img src={github} alt="GitHub" />
 		</a>
@@ -41,89 +35,81 @@
 <style>
 	header {
 		display: flex;
-		justify-content: space-between;
+		flex-direction: column;
+		width: 250px;
+		background: white;
+		padding: 1rem;
+		box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+		height: 100vh;
 	}
 
-	.corner {
-		width: 3em;
-		height: 3em;
+	.logo {
+		padding: 1rem 0;
+		text-align: center;
 	}
 
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.corner img {
-		width: 2em;
-		height: 2em;
+	.logo img {
+		width: 2.5em;
+		height: 2.5em;
 		object-fit: contain;
 	}
 
 	nav {
-		display: flex;
-		justify-content: center;
-		--background: rgba(255, 255, 255, 0.7);
-	}
-
-	svg {
-		width: 2em;
-		height: 3em;
-		display: block;
-	}
-
-	path {
-		fill: var(--background);
+		flex: 1;
+		margin: 2rem 0;
 	}
 
 	ul {
-		position: relative;
+		list-style: none;
 		padding: 0;
 		margin: 0;
-		height: 3em;
 		display: flex;
-		justify-content: center;
-		align-items: center;
-		list-style: none;
-		background: var(--background);
-		background-size: contain;
+		flex-direction: column;
+		gap: 0.5rem;
 	}
 
 	li {
-		position: relative;
-		height: 100%;
+		width: 100%;
 	}
 
-	li[aria-current='page']::before {
-		--size: 6px;
-		content: '';
-		width: 0;
-		height: 0;
-		position: absolute;
-		top: 0;
-		left: calc(50% - var(--size));
-		border: var(--size) solid transparent;
-		border-top: var(--size) solid var(--color-theme-1);
+	li[aria-current='page'] {
+		background: var(--color-theme-1);
+		border-radius: 4px;
+	}
+
+	li[aria-current='page'] a {
+		color: white;
 	}
 
 	nav a {
-		display: flex;
-		height: 100%;
-		align-items: center;
-		padding: 0 0.5rem;
+		display: block;
+		padding: 0.75rem 1rem;
 		color: var(--color-text);
-		font-weight: 700;
-		font-size: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
+		font-weight: 600;
 		text-decoration: none;
-		transition: color 0.2s linear;
+		transition: all 0.2s ease;
+		border-radius: 4px;
 	}
 
-	a:hover {
+	nav a:hover {
+		background: rgba(0, 0, 0, 0.05);
 		color: var(--color-theme-1);
+	}
+
+	.github {
+		padding: 1rem 0;
+		text-align: center;
+		margin-top: auto;
+	}
+
+	.github img {
+		width: 2em;
+		height: 2em;
+		opacity: 0.7;
+		transition: opacity 0.2s ease;
+	}
+
+	.github img:hover {
+		opacity: 1;
 	}
 </style>
