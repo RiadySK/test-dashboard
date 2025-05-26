@@ -17,6 +17,12 @@
       >
         Reservation List
       </a>
+      <a 
+        href="/room-availability" 
+        class="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium {$page.url.pathname.startsWith('/room-availability') ? 'bg-blue-50 text-blue-600' : ''}"
+      >
+        Room Availability
+      </a>
     </div>
   </nav>
 </header> 
