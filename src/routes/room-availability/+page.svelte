@@ -168,7 +168,7 @@
     const minSellable = [...available]; // Placeholder, can be changed if needed
 
     // For summary counts above the table
-    const totalInventory = inventory.reduce((a, b) => a + b, 0);
+    const totalInventory = roomAvailability.reduce((sum, r) => sum + r.qty, 0);
     const totalAvailable = available.reduce((a, b) => a + b, 0);
     const totalPercentage = Math.round((totalAvailable / totalInventory) * 100);
 
@@ -185,8 +185,8 @@
     <div class="flex items-center space-x-4 mb-2">
         <div class="bg-blue-500 text-white px-3 py-1 rounded-t font-semibold text-sm shadow">Summary</div>
         <div class="text-black text-sm"><span class="font-bold">{totalInventory}</span> Count</div>
-        <div class="text-black text-sm"><span class="font-bold text-blue-700">{totalPercentage}%</span> Percentage of Total</div>
-        <div class="text-black text-sm"><span class="font-bold text-green-600">{totalAvailable}</span> Available</div>
+        <div class="text-black text-sm"><span class="font-bold text-blue-700">{totalInventory}</span> Percentage of Total</div>
+        <div class="text-black text-sm"><span class="font-bold text-green-600">{totalInventory}</span> Available</div>
     </div>
     <hr class="mb-2 border-gray-300" />
     <!-- Summary Table -->
@@ -244,15 +244,15 @@
     <!-- Summary Detail Section -->
     <div class="flex items-center space-x-4 mb-2">
         <div class="bg-blue-500 text-white px-3 py-1 rounded-t font-semibold text-sm shadow">Details</div>
-        <div class="text-black text-sm"><span class="font-bold">123</span> Count</div>
+        <div class="text-black text-sm"><span class="font-bold">{totalInventory}</span> Count</div>
         <div class="text-red-600 text-sm">* Overbooking Limit</div>
-        <div class="text-black text-sm"><span class="font-bold text-blue-600">123</span> Percentage of Total</div>
-        <div class="text-black text-sm"><span class="font-bold text-green-600">123</span> Available</div>
+        <div class="text-black text-sm"><span class="font-bold text-blue-600">{totalInventory}</span> Percentage of Total</div>
+        <div class="text-black text-sm"><span class="font-bold text-green-600">{totalInventory}</span> Available</div>
         <label class="flex items-center space-x-1 text-sm cursor-pointer">
             <input type="checkbox" class="accent-gray-400" disabled />
             <span>Suite Component</span>
         </label>
-        <div class="text-black text-sm"><span class="font-bold bg-yellow-200 border border-yellow-400 px-1">123</span> Physical Inventory</div>
+        <div class="text-black text-sm"><span class="font-bold bg-yellow-200 border border-yellow-400 px-1">{totalInventory}</span> Physical Inventory</div>
     </div>
     <hr class="mb-2 border-gray-300" />
     <!-- End Summary Detail Section -->
