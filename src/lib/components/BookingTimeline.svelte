@@ -1,5 +1,6 @@
 <script lang="ts">
   import BookingBlock from './BookingBlock.svelte';
+  import ConfirmationModal from './ConfirmationModal.svelte';
   import { dndzone, type DndEvent } from 'svelte-dnd-action';
   import { bookings as bookingsStore } from '$lib/stores/bookings';
   import type { Booking } from '$lib/stores/bookings';
@@ -9,6 +10,10 @@
   export let dates: string[] = [];
 
   let localBookings: Booking[] = [];
+  
+  // Modal state
+  let showDropModal = false;
+  let pendingDropChanges: { booking: Booking; roomId: string; startDate: string; endDate: string } | null = null;
   
   // Update localBookings whenever bookings change
   $: {
@@ -52,16 +57,54 @@
     if (!bookingData) return;
 
     const booking = JSON.parse(bookingData);
-    if (booking.roomId !== roomId) {
-      // Update the booking in the store with the new room
+    
+    // Get the current position of the booking block
+    const bookingBlock = document.querySelector(`[data-booking-id="${booking.id}"]`);
+    if (!bookingBlock) return;
+    
+    const rect = bookingBlock.getBoundingClientRect();
+    const parentRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = rect.left - parentRect.left;
+    const dayWidth = 96; // 6rem * 16px (assuming 1rem = 16px)
+    const dayIndex = Math.floor(x / dayWidth);
+    
+    if (dayIndex >= 0 && dayIndex < dates.length) {
+      const daysDiff = dates.indexOf(booking.endDate) - dates.indexOf(booking.startDate);
+      const newStartDate = dates[dayIndex];
+      const newEndDate = dates[Math.min(dayIndex + daysDiff, dates.length - 1)];
+      
+      // Store pending changes
+      pendingDropChanges = {
+        booking,
+        roomId,
+        startDate: newStartDate,
+        endDate: newEndDate
+      };
+      
+      // Show confirmation modal
+      showDropModal = true;
+    }
+  }
+
+  function handleDropConfirm() {
+    if (pendingDropChanges) {
+      const { booking, roomId, startDate, endDate } = pendingDropChanges;
+      
+      // Update the booking in the store with both room and date changes
       bookingsStore.update(currentBookings => 
         currentBookings.map(b => 
           b.id === booking.id 
-            ? { ...b, roomId }
+            ? { ...b, roomId, startDate, endDate }
             : b
         )
       );
+      
+      pendingDropChanges = null;
     }
+  }
+
+  function handleDropCancel() {
+    pendingDropChanges = null;
   }
 </script>
 
@@ -100,6 +143,14 @@
     {/each}
   </div>
 </div>
+
+<ConfirmationModal
+  bind:show={showDropModal}
+  title="Confirm Booking Move"
+  message={pendingDropChanges ? `Are you sure you want to move the booking to ${rooms.find(r => r.id === pendingDropChanges?.roomId)?.title} from ${pendingDropChanges?.startDate} to ${pendingDropChanges?.endDate}?` : ''}
+  on:confirm={handleDropConfirm}
+  on:cancel={handleDropCancel}
+/>
 
 <style>
   :global(*) {

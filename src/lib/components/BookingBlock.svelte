@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { dndzone } from 'svelte-dnd-action';
+  import ConfirmationModal from './ConfirmationModal.svelte';
   export let booking: any;
   export let dates: string[];
   export let left: string;
@@ -14,6 +15,15 @@
   let resizeDirection: 'left' | 'right' | null = null;
   const dayWidth = 6; // width of one day in rem
   let draggedBookingData: any = null;
+  
+  // Modal state
+  let showResizeModal = false;
+  let pendingResizeChanges: { 
+    startDate: string; 
+    endDate: string;
+    originalStartDate: string;
+    originalEndDate: string;
+  } | null = null;
 
   function handleResizeStart(e: MouseEvent, direction: 'left' | 'right') {
     e.stopPropagation();
@@ -44,6 +54,12 @@
       if (newDayIndex !== startDayIndex && newWidth >= dayWidth) {
         const endIndex = Math.floor((startLeft + startWidth) / dayWidth);
         if (newDayIndex < endIndex) {
+          pendingResizeChanges = {
+            startDate: dates[newDayIndex],
+            endDate: booking.endDate,
+            originalStartDate: booking.startDate,
+            originalEndDate: booking.endDate
+          };
           booking.startDate = dates[newDayIndex];
           left = `${newDayIndex * dayWidth}rem`;
           width = `${(endIndex - newDayIndex + 1) * dayWidth}rem`;
@@ -60,6 +76,12 @@
       if (newEndDayIndex !== endDayIndex && newWidth >= dayWidth) {
         const startIndex = Math.floor(startLeft / dayWidth);
         if (newEndDayIndex > startIndex && newEndDayIndex < dates.length) {
+          pendingResizeChanges = {
+            startDate: booking.startDate,
+            endDate: dates[newEndDayIndex],
+            originalStartDate: booking.startDate,
+            originalEndDate: booking.endDate
+          };
           booking.endDate = dates[newEndDayIndex];
           width = `${(newEndDayIndex - startIndex + 1) * dayWidth}rem`;
         }
@@ -72,7 +94,28 @@
     resizeDirection = null;
     window.removeEventListener('mousemove', handleResizeMove);
     window.removeEventListener('mouseup', handleResizeEnd);
-    dispatch('resize', { booking });
+    
+    if (pendingResizeChanges) {
+      showResizeModal = true;
+    }
+  }
+
+  function handleResizeConfirm() {
+    if (pendingResizeChanges) {
+      dispatch('resize', { booking });
+      pendingResizeChanges = null;
+    }
+  }
+
+  function handleResizeCancel() {
+    if (pendingResizeChanges) {
+      // Revert changes
+      booking.startDate = pendingResizeChanges.originalStartDate;
+      booking.endDate = pendingResizeChanges.originalEndDate;
+      left = `${dates.indexOf(booking.startDate) * dayWidth}rem`;
+      width = `${(dates.indexOf(booking.endDate) - dates.indexOf(booking.startDate) + 1) * dayWidth}rem`;
+      pendingResizeChanges = null;
+    }
   }
 
   function handleDragStart(e: DragEvent) {
@@ -114,6 +157,7 @@
   class="absolute top-1 bottom-1 rounded bg-blue-500 text-white px-2 py-1 text-sm cursor-move select-none group"
   style="left: {left}; width: {width};"
   draggable="true"
+  data-booking-id={booking.id}
   on:dragstart={handleDragStart}
   on:dragover={handleDragOver}
 >
@@ -130,6 +174,16 @@
   <span class="ml-1">💼</span>
   <slot />
 </div>
+
+<ConfirmationModal
+  bind:show={showResizeModal}
+  title="Confirm Booking Resize"
+  message={pendingResizeChanges ? 
+    `Are you sure you want to change the booking dates from ${pendingResizeChanges.originalStartDate} to ${pendingResizeChanges.originalEndDate} to ${pendingResizeChanges.startDate} to ${pendingResizeChanges.endDate}?` 
+    : ''}
+  on:confirm={handleResizeConfirm}
+  on:cancel={handleResizeCancel}
+/>
 
 <style>
   div {
