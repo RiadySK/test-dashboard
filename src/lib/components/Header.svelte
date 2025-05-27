@@ -23,6 +23,12 @@
       >
         Room Availability
       </a>
+      <a 
+        href="/room-plan" 
+        class="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium {$page.url.pathname.startsWith('/room-plan') ? 'bg-blue-50 text-blue-600' : ''}"
+      >
+        Room Plan
+      </a>
     </div>
   </nav>
 </header> 
