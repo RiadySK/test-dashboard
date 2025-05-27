@@ -12,6 +12,8 @@
   let startLeft: number;
   let startWidth: number;
   let resizeDirection: 'left' | 'right' | null = null;
+  const dayWidth = 6; // width of one day in rem
+  let draggedBookingData: any = null;
 
   function handleResizeStart(e: MouseEvent, direction: 'left' | 'right') {
     e.stopPropagation();
@@ -29,31 +31,38 @@
     if (!isResizing) return;
     
     const deltaX = e.clientX - startX;
-    const dayWidth = 6; // width of one day in rem
     
     if (resizeDirection === 'left') {
       const newLeft = Math.max(0, startLeft + deltaX);
       const newWidth = startWidth - (newLeft - startLeft);
-      const minWidth = dayWidth; // minimum width of 1 day
       
-      if (newWidth >= minWidth) {
-        const startIndex = Math.floor(newLeft / dayWidth);
-        const endIndex = Math.floor((newLeft + newWidth) / dayWidth);
-        
-        if (startIndex < endIndex) {
-          booking.startDate = dates[startIndex];
-          left = `${newLeft}rem`;
-          width = `${newWidth}rem`;
+      // Calculate which day we're on
+      const startDayIndex = Math.floor(startLeft / dayWidth);
+      const newDayIndex = Math.floor(newLeft / dayWidth);
+      
+      // Only update if we've crossed a day boundary
+      if (newDayIndex !== startDayIndex && newWidth >= dayWidth) {
+        const endIndex = Math.floor((startLeft + startWidth) / dayWidth);
+        if (newDayIndex < endIndex) {
+          booking.startDate = dates[newDayIndex];
+          left = `${newDayIndex * dayWidth}rem`;
+          width = `${(endIndex - newDayIndex + 1) * dayWidth}rem`;
         }
       }
     } else {
-      const newWidth = Math.max(dayWidth, startWidth + deltaX);
-      const endIndex = Math.floor((startLeft + newWidth) / dayWidth);
-      const startIndex = Math.floor(startLeft / dayWidth);
+      const newWidth = startWidth + deltaX;
       
-      if (endIndex > startIndex && endIndex < dates.length) {
-        booking.endDate = dates[endIndex];
-        width = `${newWidth}rem`;
+      // Calculate which day we're on
+      const endDayIndex = Math.floor((startLeft + startWidth) / dayWidth);
+      const newEndDayIndex = Math.floor((startLeft + newWidth) / dayWidth);
+      
+      // Only update if we've crossed a day boundary
+      if (newEndDayIndex !== endDayIndex && newWidth >= dayWidth) {
+        const startIndex = Math.floor(startLeft / dayWidth);
+        if (newEndDayIndex > startIndex && newEndDayIndex < dates.length) {
+          booking.endDate = dates[newEndDayIndex];
+          width = `${(newEndDayIndex - startIndex + 1) * dayWidth}rem`;
+        }
       }
     }
   }
@@ -65,15 +74,48 @@
     window.removeEventListener('mouseup', handleResizeEnd);
     dispatch('resize', { booking });
   }
+
+  function handleDragStart(e: DragEvent) {
+    if (isResizing) {
+      e.preventDefault();
+      return;
+    }
+    // Store the original booking data for reference
+    draggedBookingData = { ...booking };
+    e.dataTransfer?.setData('application/json', JSON.stringify(draggedBookingData));
+  }
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    if (!draggedBookingData) return;
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const dayIndex = Math.floor(x / (dayWidth * 16)); // Convert rem to pixels (assuming 16px = 1rem)
+
+    if (dayIndex >= 0 && dayIndex < dates.length) {
+      const daysDiff = dates.indexOf(draggedBookingData.endDate) - dates.indexOf(draggedBookingData.startDate);
+      
+      // Update the booking with new dates while maintaining the duration
+      booking.startDate = dates[dayIndex];
+      booking.endDate = dates[Math.min(dayIndex + daysDiff, dates.length - 1)];
+      
+      // Update the visual position
+      left = `${dayIndex * dayWidth}rem`;
+      width = `${(daysDiff + 1) * dayWidth}rem`;
+
+      // Dispatch update event with both date and room changes
+      dispatch('update', { booking });
+    }
+  }
 </script>
 
 <div
   class="absolute top-1 bottom-1 rounded bg-blue-500 text-white px-2 py-1 text-sm cursor-move select-none group"
   style="left: {left}; width: {width};"
   draggable="true"
-  use:dndzone={{ items: [booking], flipDurationMs: 150 }}
-  on:consider={e => dispatch('consider', e)}
-  on:finalize={e => dispatch('finalize', e)}
+  on:dragstart={handleDragStart}
+  on:dragover={handleDragOver}
 >
   <div
     class="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-blue-400 opacity-0 group-hover:opacity-100"

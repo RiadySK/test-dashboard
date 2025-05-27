@@ -2,7 +2,7 @@
 import RoomList from '$lib/components/RoomList.svelte';
 import BookingTimeline from '$lib/components/BookingTimeline.svelte';
 import Tooltip from '$lib/components/Tooltip.svelte';
-import { bookings, updateBookingDates } from '$lib/stores/bookings';
+import { bookings } from '$lib/stores/bookings';
 
 // Mock data for rooms and bookings (as per requirements)
 const ROOMS = [
@@ -35,14 +35,26 @@ const dates = [
   '2023-08-16'
 ];
 
-function incrementSusanEndDate() {
+function incrementSusanDates() {
   bookings.update(currentBookings => {
     return currentBookings.map(booking => {
       if (booking.guestName === 'Susan Halim') {
+        // Increment both dates
+        const currentStartDate = new Date(booking.startDate);
         const currentEndDate = new Date(booking.endDate);
+        currentStartDate.setDate(currentStartDate.getDate() + 1);
         currentEndDate.setDate(currentEndDate.getDate() + 1);
-        const newEndDate = currentEndDate.toISOString().split('T')[0];
-        return { ...booking, endDate: newEndDate };
+        
+        // Get random room ID (excluding current room)
+        const availableRooms = ROOMS.filter(room => room.id !== booking.roomId);
+        const randomRoom = availableRooms[Math.floor(Math.random() * availableRooms.length)];
+        
+        return {
+          ...booking,
+          startDate: currentStartDate.toISOString().split('T')[0],
+          endDate: currentEndDate.toISOString().split('T')[0],
+          roomId: randomRoom.id
+        };
       }
       return booking;
     });
@@ -55,9 +67,9 @@ function incrementSusanEndDate() {
   <div class="p-2 bg-white border-b">
     <button 
       class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      on:click={incrementSusanEndDate}
+      on:click={incrementSusanDates}
     >
-      Increment Susan's End Date
+      Increment Susan's Dates & Change Room
     </button>
   </div>
 
