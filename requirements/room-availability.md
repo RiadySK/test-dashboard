@@ -69,6 +69,36 @@ export const BOOKINGS = [
 | Icons                         | Use emojis or imported icons to simulate Clean, VIP, Smoking, etc. |
 | Lock Control                  | Each booking block has a lock button to prevent modifications.     |
 
+### Booking Information Display
+
+- **Hover Information**:
+
+  - Display a tooltip when hovering over any booking block
+  - Show the following information:
+    - Guest Name
+    - Check-in Date and Time
+    - Check-out Date and Time
+    - Room Number
+    - Booking Status (e.g., InHouse, Reserved)
+
+- **Tooltip Design**:
+
+  - Clean, modern design with clear information hierarchy
+  - Use icons to represent different types of information
+  - Color-coded status indicators
+  - Responsive layout that works on all screen sizes
+  - Maximum width to prevent oversized tooltips
+  - Smooth fade-in/fade-out animation
+  - Position tooltip to avoid screen edges
+
+- **Interaction Behavior**:
+
+  - Show tooltip after a short hover delay (e.g., 200ms)
+  - Keep tooltip visible while hovering
+  - Allow tooltip to be dismissed by moving mouse away
+  - Prevent tooltip from interfering with drag operations
+  - Support keyboard navigation for accessibility
+
 ### Lock Functionality
 
 - **Lock Button**:
@@ -283,3 +313,112 @@ export const BOOKINGS = [
 3. `<BookingBlock />`: Each block with guest info
 4. `<Tooltip />`: Shows hover details
 5. `<Legend />`: Color/icon explanations
+
+### Timeline View Options
+
+- **View Toggle**:
+
+  - Integrated into table headers for intuitive interaction
+  - Click on date header to toggle between views for that specific date
+  - Example: Clicking "5 Aug 2025" header toggles between:
+    - Daily view (default)
+    - Hourly view for that specific date
+  - Visual indicators:
+    - Clock icon (🕒) appears when hovering over date header
+    - Header background changes when in hourly view
+    - Tooltip shows "Click to toggle hourly view"
+
+- **Header Interaction**:
+
+  - Single click: Toggle between daily and hourly view for that date
+  - Double click: Expand to show full hourly view for that date
+  - Right click: Show context menu with view options
+    - "Show as Daily"
+    - "Show as Hourly"
+    - "Show as Monthly"
+  - Visual feedback:
+    - Header color changes when in different view modes
+    - Hour markers appear/disappear with animation
+    - Smooth transition between view modes
+
+- **Hourly View Features**:
+
+  - Display 24-hour timeline for selected date
+  - Show hour markers (00:00 to 23:00)
+  - Allow booking blocks to be placed by hour
+  - Support for half-hour increments
+  - Visual indicators for AM/PM periods
+  - Zoom controls for detailed hour view
+  - Collapse button to return to daily view
+
+- **Day View Features**:
+
+  - Default view showing daily bookings
+  - Maintain existing functionality
+  - Clear date headers with toggle indicators
+  - Support for multiple bookings per day
+  - Quick toggle to hourly view per date
+
+- **Month View Features**:
+  - Calendar-style monthly overview
+  - Color-coded booking indicators
+  - Hover to show booking details
+  - Quick navigation between months
+  - Visual indicators for:
+    - Fully booked days
+    - Partially booked days
+    - Available days
+  - Click on month header to expand/collapse
+
+### Datetime-Based Booking
+
+- **Booking Data Structure**:
+
+  ```ts
+  {
+    id: 'booking-1',
+    guestName: 'Susan Halim',
+    roomId: '102',
+    startDateTime: '2023-08-04T14:00:00', // ISO 8601 format
+    endDateTime: '2023-08-07T12:00:00',   // ISO 8601 format
+    status: 'InHouse',
+    isLocked: boolean
+  }
+  ```
+
+- **Time Handling**:
+
+  - Store all dates as ISO 8601 datetime strings
+  - Support for:
+    - Check-in/check-out times
+    - Hourly bookings
+    - Half-day bookings
+    - Full-day bookings
+  - Default check-in time: 14:00
+  - Default check-out time: 12:00
+
+- **Booking Creation**:
+
+  - Add time selection to booking form
+  - Time picker for:
+    - Check-in time
+    - Check-out time
+  - Validation rules:
+    - Minimum stay duration (e.g., 1 hour)
+    - Maximum stay duration
+    - Valid check-in/check-out times
+    - Room preparation time between bookings
+
+- **Conflict Prevention**:
+
+  - Enhanced conflict detection for time-based bookings
+  - Consider:
+    - Hour overlaps
+    - Preparation time requirements
+    - Room cleaning schedules
+  - Show detailed conflict information including time
+
+- **Visual Representation**:
+  - Hourly view: Show exact booking times
+  - Day view: Show check-in/check-out times in tooltips
+  - Month view: Show booking duration indicators
