@@ -37,43 +37,11 @@ const dates = [
 ];
 
 let showNewBookingModal = false;
-
-function incrementSusanDates() {
-  bookings.update(currentBookings => {
-    return currentBookings.map(booking => {
-      if (booking.guestName === 'Susan Halim') {
-        // Increment both dates
-        const currentStartDate = new Date(booking.startDate);
-        const currentEndDate = new Date(booking.endDate);
-        currentStartDate.setDate(currentStartDate.getDate() + 1);
-        currentEndDate.setDate(currentEndDate.getDate() + 1);
-        
-        // Get random room ID (excluding current room)
-        const availableRooms = ROOMS.filter(room => room.id !== booking.roomId);
-        const randomRoom = availableRooms[Math.floor(Math.random() * availableRooms.length)];
-        
-        return {
-          ...booking,
-          startDate: currentStartDate.toISOString().split('T')[0],
-          endDate: currentEndDate.toISOString().split('T')[0],
-          roomId: randomRoom.id
-        };
-      }
-      return booking;
-    });
-  });
-}
 </script>
 
 <div class="flex flex-col h-full w-full bg-gray-50">
   <!-- Header with New Booking Button -->
   <div class="p-2 bg-white border-b flex justify-between items-center">
-    <button 
-      class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      on:click={incrementSusanDates}
-    >
-      Increment Susan's Dates & Change Room
-    </button>
     <button
       class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center"
       on:click={() => showNewBookingModal = true}
