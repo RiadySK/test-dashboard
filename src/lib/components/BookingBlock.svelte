@@ -60,7 +60,7 @@
             originalStartDate: booking.startDate,
             originalEndDate: booking.endDate
           };
-          booking.startDate = dates[newDayIndex];
+          // Only update visual position
           left = `${newDayIndex * dayWidth}rem`;
           width = `${(endIndex - newDayIndex + 1) * dayWidth}rem`;
         }
@@ -82,7 +82,7 @@
             originalStartDate: booking.startDate,
             originalEndDate: booking.endDate
           };
-          booking.endDate = dates[newEndDayIndex];
+          // Only update visual position
           width = `${(newEndDayIndex - startIndex + 1) * dayWidth}rem`;
         }
       }
@@ -102,6 +102,9 @@
 
   function handleResizeConfirm() {
     if (pendingResizeChanges) {
+      // Apply the actual date changes
+      booking.startDate = pendingResizeChanges.startDate;
+      booking.endDate = pendingResizeChanges.endDate;
       dispatch('resize', { booking });
       pendingResizeChanges = null;
     }
