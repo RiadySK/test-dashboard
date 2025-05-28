@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { dndzone } from 'svelte-dnd-action';
   import ConfirmationModal from './ConfirmationModal.svelte';
+  import { updateBookingDates, toggleBookingLock } from '$lib/stores/bookings';
   export let booking: any;
   export let dates: string[];
   export let left: string;
@@ -25,7 +26,16 @@
     originalEndDate: string;
   } | null = null;
 
+  function handleLockClick(e: MouseEvent) {
+    e.stopPropagation();
+    toggleBookingLock(booking.id);
+  }
+
   function handleResizeStart(e: MouseEvent, direction: 'left' | 'right') {
+    if (booking.isLocked) {
+      e.preventDefault();
+      return;
+    }
     e.stopPropagation();
     isResizing = true;
     resizeDirection = direction;
@@ -102,10 +112,25 @@
 
   function handleResizeConfirm() {
     if (pendingResizeChanges) {
-      // Apply the actual date changes
-      booking.startDate = pendingResizeChanges.startDate;
-      booking.endDate = pendingResizeChanges.endDate;
-      dispatch('resize', { booking });
+      // Check for conflicts before applying changes
+      const success = updateBookingDates(
+        booking.id,
+        pendingResizeChanges.startDate,
+        pendingResizeChanges.endDate
+      );
+
+      if (success) {
+        // Apply the actual date changes
+        booking.startDate = pendingResizeChanges.startDate;
+        booking.endDate = pendingResizeChanges.endDate;
+        dispatch('resize', { booking });
+      } else {
+        // Show conflict alert
+        alert('Cannot resize booking: There is a conflict with another booking in this room.');
+        // Revert changes
+        handleResizeCancel();
+      }
+      
       pendingResizeChanges = null;
     }
   }
@@ -122,7 +147,7 @@
   }
 
   function handleDragStart(e: DragEvent) {
-    if (isResizing) {
+    if (booking.isLocked || isResizing) {
       e.preventDefault();
       return;
     }
@@ -141,40 +166,70 @@
 
     if (dayIndex >= 0 && dayIndex < dates.length) {
       const daysDiff = dates.indexOf(draggedBookingData.endDate) - dates.indexOf(draggedBookingData.startDate);
+      const newStartDate = dates[dayIndex];
+      const newEndDate = dates[Math.min(dayIndex + daysDiff, dates.length - 1)];
       
-      // Update the booking with new dates while maintaining the duration
-      booking.startDate = dates[dayIndex];
-      booking.endDate = dates[Math.min(dayIndex + daysDiff, dates.length - 1)];
+      // Check for conflicts before updating
+      const success = updateBookingDates(booking.id, newStartDate, newEndDate);
       
-      // Update the visual position
-      left = `${dayIndex * dayWidth}rem`;
-      width = `${(daysDiff + 1) * dayWidth}rem`;
+      if (success) {
+        // Update the booking with new dates while maintaining the duration
+        booking.startDate = newStartDate;
+        booking.endDate = newEndDate;
+        
+        // Update the visual position
+        left = `${dayIndex * dayWidth}rem`;
+        width = `${(daysDiff + 1) * dayWidth}rem`;
 
-      // Dispatch update event with both date and room changes
-      dispatch('update', { booking });
+        // Dispatch update event with both date and room changes
+        dispatch('update', { booking });
+      } else {
+        // Show conflict alert
+        alert('Cannot move booking: There is a conflict with another booking in this room.');
+        // Revert to original position
+        left = `${dates.indexOf(draggedBookingData.startDate) * dayWidth}rem`;
+        width = `${(daysDiff + 1) * dayWidth}rem`;
+        booking.startDate = draggedBookingData.startDate;
+        booking.endDate = draggedBookingData.endDate;
+      }
     }
   }
 </script>
 
 <div
-  class="absolute top-1 bottom-1 rounded bg-blue-500 text-white px-2 py-1 text-sm cursor-move select-none group"
+  class="absolute top-1 bottom-1 rounded text-white px-2 py-1 text-sm cursor-move select-none group"
+  class:bg-blue-500={!booking.isLocked}
+  class:bg-gray-500={booking.isLocked}
   style="left: {left}; width: {width};"
-  draggable="true"
+  draggable={!booking.isLocked}
   data-booking-id={booking.id}
   on:dragstart={handleDragStart}
   on:dragover={handleDragOver}
 >
   <div
     class="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-blue-400 opacity-0 group-hover:opacity-100"
+    class:opacity-0={booking.isLocked}
     on:mousedown={e => handleResizeStart(e, 'left')}
   ></div>
   <div
     class="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-blue-400 opacity-0 group-hover:opacity-100"
+    class:opacity-0={booking.isLocked}
     on:mousedown={e => handleResizeStart(e, 'right')}
   ></div>
-  <span>{booking.guestName}</span>
-  <span class="ml-1">({booking.status})</span>
-  <span class="ml-1">💼</span>
+  <div class="flex items-center justify-between">
+    <div>
+      <span>{booking.guestName}</span>
+      <span class="ml-1">({booking.status})</span>
+      <span class="ml-1">💼</span>
+    </div>
+    <button
+      class="ml-2 opacity-0 group-hover:opacity-100 hover:opacity-100"
+      on:click={handleLockClick}
+      title={booking.isLocked ? "Unlock booking" : "Lock booking"}
+    >
+      {booking.isLocked ? "🔒" : "🔓"}
+    </button>
+  </div>
   <slot />
 </div>
 

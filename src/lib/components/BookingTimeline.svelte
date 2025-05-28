@@ -2,7 +2,7 @@
   import BookingBlock from './BookingBlock.svelte';
   import ConfirmationModal from './ConfirmationModal.svelte';
   import { dndzone, type DndEvent } from 'svelte-dnd-action';
-  import { bookings as bookingsStore } from '$lib/stores/bookings';
+  import { bookings as bookingsStore, updateBookingDates, updateBookingRoomAndDates } from '$lib/stores/bookings';
   import type { Booking } from '$lib/stores/bookings';
 
   export let rooms: { id: string; title: string; type: string }[] = [];
@@ -58,6 +58,12 @@
 
     const booking = JSON.parse(bookingData);
     
+    // Check if booking is locked
+    if (booking.isLocked) {
+      alert('Cannot move booking: This booking is locked.');
+      return;
+    }
+    
     // Get the current position of the booking block
     const bookingBlock = document.querySelector(`[data-booking-id="${booking.id}"]`);
     if (!bookingBlock) return;
@@ -90,14 +96,28 @@
     if (pendingDropChanges) {
       const { booking, roomId, startDate, endDate } = pendingDropChanges;
       
-      // Update the booking in the store with both room and date changes
-      bookingsStore.update(currentBookings => 
-        currentBookings.map(b => 
-          b.id === booking.id 
-            ? { ...b, roomId, startDate, endDate }
-            : b
-        )
+      // Check if booking is locked
+      if (booking.isLocked) {
+        alert('Cannot move booking: This booking is locked.');
+        pendingDropChanges = null;
+        return;
+      }
+      
+      // Check for conflicts and update both room and dates
+      const success = updateBookingRoomAndDates(
+        booking.id,
+        roomId,
+        startDate,
+        endDate
       );
+      
+      if (success) {
+        // The store update is handled inside updateBookingRoomAndDates
+        showDropModal = false;
+      } else {
+        // Show conflict alert
+        alert('Cannot move booking: There is a conflict with another booking in the target room.');
+      }
       
       pendingDropChanges = null;
     }

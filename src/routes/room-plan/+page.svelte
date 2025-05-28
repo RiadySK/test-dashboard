@@ -2,6 +2,7 @@
 import RoomList from '$lib/components/RoomList.svelte';
 import BookingTimeline from '$lib/components/BookingTimeline.svelte';
 import Tooltip from '$lib/components/Tooltip.svelte';
+import NewBookingModal from '$lib/components/NewBookingModal.svelte';
 import { bookings } from '$lib/stores/bookings';
 
 // Mock data for rooms and bookings (as per requirements)
@@ -19,21 +20,23 @@ const ROOMS = [
 ];
 
 const dates = [
-  '2023-08-03',
-  '2023-08-04',
-  '2023-08-05',
-  '2023-08-06',
-  '2023-08-07',
-  '2023-08-08',
-  '2023-08-09',
-  '2023-08-10',
-  '2023-08-11',
-  '2023-08-12',
-  '2023-08-13',
-  '2023-08-14',
-  '2023-08-15',
-  '2023-08-16'
+  '2025-08-01',
+  '2025-08-02',
+  '2025-08-03',
+  '2025-08-04',
+  '2025-08-05',
+  '2025-08-06',
+  '2025-08-07',
+  '2025-08-08',
+  '2025-08-09',
+  '2025-08-10',
+  '2025-08-11',
+  '2025-08-12',
+  '2025-08-13',
+  '2025-08-14'
 ];
+
+let showNewBookingModal = false;
 
 function incrementSusanDates() {
   bookings.update(currentBookings => {
@@ -63,13 +66,20 @@ function incrementSusanDates() {
 </script>
 
 <div class="flex flex-col h-full w-full bg-gray-50">
-  <!-- Test Button -->
-  <div class="p-2 bg-white border-b">
+  <!-- Header with New Booking Button -->
+  <div class="p-2 bg-white border-b flex justify-between items-center">
     <button 
       class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       on:click={incrementSusanDates}
     >
       Increment Susan's Dates & Change Room
+    </button>
+    <button
+      class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center"
+      on:click={() => showNewBookingModal = true}
+    >
+      <span class="mr-2">+</span>
+      New Booking
     </button>
   </div>
 
@@ -92,6 +102,20 @@ function incrementSusanDates() {
     <div><span class="mr-1">🧹</span> Clean</div>
     <div><span class="mr-1">🚬</span> Smoking</div>
     <div><span class="mr-1">💼</span> VIP</div>
+    <div><span class="mr-1">🔒</span> Locked</div>
+    <div><span class="mr-1">🔓</span> Unlocked</div>
     <!-- Add more legend items as needed -->
   </footer>
-</div> 
+</div>
+
+<NewBookingModal
+  bind:show={showNewBookingModal}
+  rooms={ROOMS}
+  {dates}
+  on:success={() => {
+    // Optional: Show success message or highlight new booking
+  }}
+  on:cancel={() => {
+    // Optional: Handle cancel
+  }}
+/> 
