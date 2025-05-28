@@ -26,6 +26,11 @@
     originalEndDate: string;
   } | null = null;
 
+  // Tooltip state
+  let showTooltip = false;
+  let tooltipX = 0;
+  let tooltipY = 0;
+
   function handleLockClick(e: MouseEvent) {
     e.stopPropagation();
     toggleBookingLock(booking.id);
@@ -194,6 +199,23 @@
       }
     }
   }
+
+  function handleMouseEnter(e: MouseEvent) {
+    showTooltip = true;
+    tooltipX = e.clientX;
+    tooltipY = e.clientY;
+  }
+
+  function handleMouseMove(e: MouseEvent) {
+    if (showTooltip) {
+      tooltipX = e.clientX;
+      tooltipY = e.clientY;
+    }
+  }
+
+  function handleMouseLeave() {
+    showTooltip = false;
+  }
 </script>
 
 <div
@@ -205,6 +227,9 @@
   data-booking-id={booking.id}
   on:dragstart={handleDragStart}
   on:dragover={handleDragOver}
+  on:mouseenter={handleMouseEnter}
+  on:mousemove={handleMouseMove}
+  on:mouseleave={handleMouseLeave}
 >
   <div
     class="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-blue-400 opacity-0 group-hover:opacity-100"
@@ -233,6 +258,34 @@
   <slot />
 </div>
 
+{#if showTooltip}
+  <div
+    class="fixed z-50 bg-white text-gray-800 rounded-lg shadow-lg p-4 max-w-sm"
+    style="left: {tooltipX + 10}px; top: {tooltipY + 10}px;"
+  >
+    <div class="space-y-2">
+      <div class="font-semibold text-lg">{booking.guestName}</div>
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div class="text-gray-600">Check-in:</div>
+        <div>{booking.startDate}</div>
+        <div class="text-gray-600">Check-out:</div>
+        <div>{booking.endDate}</div>
+        <div class="text-gray-600">Room:</div>
+        <div>{booking.roomId}</div>
+        <div class="text-gray-600">Status:</div>
+        <div class="flex items-center">
+          <span class="mr-1">{booking.status}</span>
+          {#if booking.status === 'InHouse'}
+            <span class="text-green-500">●</span>
+          {:else if booking.status === 'Reserved'}
+            <span class="text-blue-500">●</span>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
+
 <ConfirmationModal
   bind:show={showResizeModal}
   title="Confirm Booking Resize"
@@ -249,5 +302,10 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+  }
+
+  /* Add smooth transition for tooltip */
+  .fixed {
+    transition: opacity 0.2s ease-in-out;
   }
 </style> 
